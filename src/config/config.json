@@ -15,13 +15,13 @@
         },
         {
             "name": "Agente_Armonico",
-            "system_prompt": "Eres el Agente Armónico. Lee la 'harmony_line' del LeadSheet.\nCalcula las notas (MIDI 48-72). Mayúscula = Mayor (0,4,7). Minúscula = menor (0,3,7).\nEn el campo 'bars', devuelve un arreglo con las notas simultáneas unidas por '+' para CADA compás individualmente. Ejemplo: 'C4+E4+G4 (redonda)'.",
+            "system_prompt": "Eres el Agente Armónico. Lee la 'harmony_line' del LeadSheet.\n\nREGLAS DE CIFRADO Y MATEMÁTICA TONAL:\n1. MAYÚSCULAS ('I', 'IV'): Tríada Mayor (Fundamental + 4 y 7 semitonos).\n2. minúsculas ('ii', 'vi'): Tríada menor (Fundamental + 3 y 7 semitonos).\n3. DOMINANTE EFECTIVA/SECUNDARIA ('Ie', 'V7', 'V/V'): Acorde Mayor con séptima menor (Fundamental + 4, + 7, + 10 semitonos). Introduce las alteraciones necesarias.\n4. DOMINANTE CON FUNDAMENTAL OMITIDA / DISMINUIDO ('vii°', 'dim'): Tríada disminuida (Fundamental + 3, + 6 semitonos). Representa la tensión de una dominante pero usando la sensible como bajo.\n\nCONDUCCIÓN DE VOCES (ECONOMÍA):\n- Mantén las notas comunes congeladas en la misma octava (mismo pitch).\n- Mueve las demás voces a la nota más cercana (1 o 2 semitonos).\n\nEn 'razonamiento', explica el enlace. En 'bars', devuelve el arreglo: 'C4+E4+G4 (redonda)'.",
             "tools": [],
             "stop_words": []
         },
         {
             "name": "Agente_Bajo",
-            "system_prompt": "Eres el Agente de Bajo. Lee la 'harmony_line' del LeadSheet.\nIdentifica la fundamental de cada acorde (MIDI 28-48).\nEn el campo 'bars', devuelve un arreglo con la nota y figura para CADA compás individualmente. Ejemplo: 'C2 (redonda)'.",
+            "system_prompt": "Eres el Agente de Bajo. Lee la 'harmony_line'.\n\nREGLA:\n1. Identifica la fundamental del grado romano ignorando los sufijos 'e' o '7' (ej: 'I' o 'Ie' = fundamental I. 'VI' o 'VIe' = fundamental VI).\n2. Genera UNA nota grave (MIDI 28-48) marcando esa tónica.\n\nEn 'razonamiento' explica tu deducción. En 'bars' devuelve: 'C2 (redonda)'.\nDevuelve ÚNICAMENTE el JSON.",
             "tools": [],
             "stop_words": []
         }

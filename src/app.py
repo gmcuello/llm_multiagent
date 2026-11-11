@@ -1,5 +1,8 @@
 # src/app.py
 import json
+import pygame
+import time
+import re
 from pathlib import Path
 from base.config_loader import load_config
 from base.LLMClient import LLMClient
@@ -54,6 +57,9 @@ if __name__ == "__main__":
 
     tools = load_tools(config)
     agents = create_agents(config, tools)
+
+    # Inicializar el motor de audio de pygame
+    pygame.mixer.init()
 
     while True:
         str_consulta = input("\nIngrese la descripción del tema MIDI (o 'salir'): ")
@@ -129,25 +135,43 @@ if __name__ == "__main__":
                 req = json.dumps({"start_offset": offset, "line": bass_semantic['bars'][i]})
                 bass_midi.extend(json.loads(parser_tool.execute(req)))
 
-        # --- [ETAPA 5: COMPILACIÓN BINARIA MIDI] ---
-        print("\n--- [ETAPA 5: COMPILACIÓN BINARIA MIDI] ---")
-        from schemas.midi_schemas import TrackSpec, CompositionSpec
+                # --- [ETAPA 5: COMPILACIÓN BINARIA MIDI] ---
+                print("\n--- [ETAPA 5: COMPILACIÓN BINARIA MIDI] ---")
+                from schemas.midi_schemas import TrackSpec, CompositionSpec
 
-        tracks_obj = [
-            TrackSpec(name="Chords", program=0, notes=chords_midi),
-            TrackSpec(name="Lead", program=80, notes=lead_midi),
-            TrackSpec(name="Bass", program=33, notes=bass_midi)
-        ]
+                tracks_obj = [
+                    TrackSpec(name="Chords", program=0, notes=chords_midi),
+                    TrackSpec(name="Lead", program=80, notes=lead_midi),
+                    TrackSpec(name="Bass", program=33, notes=bass_midi)
+                ]
 
-        composition = CompositionSpec(
-            title=leadsheet_dict.get("title", "Pieza_MultiAgente"),
-            bpm=leadsheet_dict.get("bpm", 120),
-            key=leadsheet_dict.get("key", "C major"),
-            total_bars=leadsheet_dict.get("total_bars", 8),
-            tracks=tracks_obj
-        )
+                composition = CompositionSpec(
+                    title=leadsheet_dict.get("title", "Pieza_MultiAgente"),
+                    bpm=leadsheet_dict.get("bpm", 120),
+                    key=leadsheet_dict.get("key", "C major"),
+                    total_bars=leadsheet_dict.get("total_bars", 8),
+                    tracks=tracks_obj
+                )
 
-        compiler = tools["MidiCompilerTool"]
-        resultado_compilacion = compiler.execute(composition.model_dump_json())
-        print(
-            f"\n==================================\nRESULTADO FINAL:\n==================================\n{resultado_compilacion}")
+                compiler = tools["MidiCompilerTool"]
+                resultado_compilacion = compiler.execute(composition.model_dump_json())
+
+                print(
+                    f"\n==================================\nRESULTADO FINAL:\n==================================\n{resultado_compilacion}")
+
+                # --- [NUEVO: REPRODUCCIÓN AUTOMÁTICA] ---
+                # Buscamos la ruta absoluta que devolvió la herramienta de compilación
+                match_ruta = re.search(r'en:\s*(.*\.mid)', resultado_compilacion)
+                if match_ruta:
+                    ruta_midi = match_ruta.group(1).strip()
+                    print(f"\n▶️ Reproduciendo pista generada...")
+                    try:
+                        pygame.mixer.music.load(ruta_midi)
+                        pygame.mixer.music.play()
+
+                        # Mantiene la consola pausada mientras suena el MIDI
+                        while pygame.mixer.music.get_busy():
+                            time.sleep(0.5)
+
+                    except Exception as e:
+                        print(f"⚠️ Error al intentar reproducir el audio: {e}")
